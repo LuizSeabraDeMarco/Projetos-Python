@@ -16,5 +16,5 @@ ys = np.array([100000, 150000, 200000], dtype=float)
 model.fit(xs, ys, epochs=1000)
 
 # Prevê o preço de uma casa com quatro quartos
-prediction = model.predict([7])
+prediction = model.predict([4])
 print(prediction)
