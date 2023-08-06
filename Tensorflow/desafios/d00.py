@@ -13,8 +13,8 @@ model.compile(optimizer='sgd', loss='mse')
 # Treina o modelo em um conjunto de dados de casas com um, dois e três quartos
 xs = np.array([1, 2, 3], dtype=float)
 ys = np.array([100000, 150000, 200000], dtype=float)
-model.fit(xs, ys, epochs=1000)
+model.fit(xs, ys, epochs=5000)
 
 # Prevê o preço de uma casa com quatro quartos
-prediction = model.predict([4])
+prediction = model.predict([7])
 print(prediction)
