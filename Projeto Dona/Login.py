@@ -1,4 +1,5 @@
 import customtkinter
+from Falar import comprimento
 
 customtkinter.set_appearance_mode("dark")
 customtkinter.set_default_color_theme("dark-blue")
@@ -14,7 +15,7 @@ senha.pack(padx=10, pady=10)
 
 def clique():
     if nome.get() == 'Luiz' and senha.get() == 'stark':
-        print('Acesso liberado')
+        comprimento()
     else:
         print('Acesso negado')
 
