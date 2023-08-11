@@ -16,6 +16,7 @@ senha.pack(padx=10, pady=10)
 def clique():
     if nome.get() == 'Luiz' and senha.get() == 'stark':
         comprimento()
+        janela.destroy()
     else:
         print('Acesso negado')
 
