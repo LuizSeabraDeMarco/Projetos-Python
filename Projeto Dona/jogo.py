@@ -14,17 +14,6 @@ def conta():
         soma = n1 + n2
         print(f'{n1} + {n2}?')
         rec.adjust_for_ambient_noise(mic)
-        time.sleep(1)
-        print('10')
-        time.sleep(1)
-        print('9')
-        time.sleep(1)
-        print('8')
-        time.sleep(1)
-        print('7')
-        time.sleep(1)
-        print('6')
-        time.sleep(1)
         print('5')
         time.sleep(1)
         print('4')
@@ -53,6 +42,8 @@ def conta():
             print('=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-')
             contador += 1
             conta()
+        elif numero == 0:
+            print('')
         else:
             print(f"ERROU: a resposta certa -> {soma} / a sua resposta foi {numero}")
             print(f'Voce acertou {contador} vezes')
