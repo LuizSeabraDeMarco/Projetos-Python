@@ -1,5 +1,9 @@
 import customtkinter
 from Falar import comprimento
+from jogo import conta
+from Pergunta_fala import fala
+import speech_recognition as sr
+
 
 customtkinter.set_appearance_mode("dark")
 customtkinter.set_default_color_theme("dark-blue")
@@ -17,6 +21,10 @@ def clique():
     if nome.get() == 'Luiz' and senha.get() == 'stark':
         comprimento()
         janela.destroy()
+        from menu import roda
+        from menu import opcao
+        from menu import espaco
+        roda()
     else:
         print('Acesso negado')
 

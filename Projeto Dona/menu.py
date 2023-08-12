@@ -22,28 +22,32 @@ def roda():
 
     fala()
     print("Fale a resposta: ")
-    rec = sr.Recognizer()
+    try:
+        rec = sr.Recognizer()
 
-    with sr.Microphone(device_index=0) as mic:
-        rec.adjust_for_ambient_noise(mic)
-        audio = rec.listen(mic)
-        frase = rec.recognize_google(audio, language="pt-BR")
-        string = frase
-        numeros = []
-        for caractere in string:
-            if caractere.isdigit():
-                numeros.append(caractere)
+        with sr.Microphone(device_index=0) as mic:
+            rec.adjust_for_ambient_noise(mic)
+            audio = rec.listen(mic)
+            frase = rec.recognize_google(audio, language="pt-BR")
+            string = frase
+            numeros = []
+            for caractere in string:
+                if caractere.isdigit():
+                    numeros.append(caractere)
 
-        numero = "".join(numeros)
-        print(numero)
-    
-    numero = str(numero)
-    if numero == '1':
-        linha()
-        print('|    JOGO DE CALCULOS    |')
-        linha()
-        conta()
-        roda()
-    if numero == '2':
-        print('FIM')
+            numero = "".join(numeros)
+            print(numero)
+        
+        numero = str(numero)
+        if numero == '1':
+            linha()
+            print('|    JOGO DE CALCULOS    |')
+            linha()
+            conta()
+            roda()
+        if numero == '2':
+            print('FIM')
+    except:
+        print('ERRO')
+
 roda()
