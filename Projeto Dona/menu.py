@@ -38,16 +38,19 @@ def roda():
             numero = "".join(numeros)
             print(numero)
         
-        numero = str(numero)
-        if numero == '1':
+        numero = int(numero)
+        if numero == 1:
             linha()
             print('|    JOGO DE CALCULOS    |')
             linha()
             conta()
             roda()
-        if numero == '2':
+        elif numero == 2:
             print('FIM')
+        else:
+            print('Opção não existente')
     except:
         print('ERRO')
+        roda()
 
 roda()

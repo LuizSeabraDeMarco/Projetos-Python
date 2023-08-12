@@ -19,7 +19,11 @@ senha.pack(padx=10, pady=10)
 
 def clique():
     if nome.get() == 'Luiz' and senha.get() == 'stark':
-        comprimento()
+        try:
+            comprimento()
+        except:
+            print('ERRO')
+            comprimento()
         janela.destroy()
         from menu import roda
         from menu import opcao
