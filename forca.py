@@ -1,7 +1,17 @@
+import unicodedata
+def coração(x, y = 0):
+    coracao_lista = []
+    coracao = unicodedata.lookup('HEAVY BLACK HEART')
+    while True:
+        if y < x:
+            coracao_lista.append(coracao)
+            y = y + 1
+        else:
+            print('VIDA:  ' + ' '.join(coracao_lista))
+            break
 def forca():
     palavra_escolhida = str(input('Escolha uma palavra: '))
     palavra_escolhida = palavra_escolhida.lower()
-
 
     if not palavra_escolhida.isdigit():
         def espaco(x = 0):
@@ -26,8 +36,9 @@ def forca():
         letra_encontrada = []
         letra_errada = []
         def jogo():
-            vida = int(10)
+            vida = int(5)
             while True:
+                coração(vida)
                 letra = str(input('Digite uma letra: '))
                 letra = letra.lower()
                 if not letra.isdigit():
@@ -52,13 +63,14 @@ def forca():
                                 break
                         else:
                             linha()
-                            if letra in letra_encontrada:
+                            if letra in letra_encontrada or letra_errada:
                                 print('Letra já incerida')
                             else:
-                                vida = vida - 1
-                                print(vida)
                                 print('Está letra não tem na palavra')
-                                letra_errada.append(letra)
+                                if letra not in letra_encontrada or letra_errada:            
+                                    vida = vida - 1
+                                    coração(vida)
+                                    letra_errada.append(letra)
                                 if int(vida) == 0:
                                     print('Acabou as suas vidas')
                                     break
