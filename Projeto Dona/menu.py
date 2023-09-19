@@ -1,6 +1,7 @@
 from jogo import conta
 from Pergunta_fala import fala
 import speech_recognition as sr
+import time
 
 
 def linha():
