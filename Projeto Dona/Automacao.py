@@ -10,7 +10,7 @@ def posicao():
 ptg.PAUSE = 2
 posicao()
 ptg.press("win")
-ptg.write("Spotfy")
+ptg.write("chrome")
 ptg.press("enter")
 sleep(3)
 ptg.click(x=97, y=134)

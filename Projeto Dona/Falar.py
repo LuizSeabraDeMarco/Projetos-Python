@@ -2,7 +2,7 @@ import gtts
 from playsound import playsound
 import random
 
-def comprimento():
+def comprimento():  
     try:
         sorteio_fala = random.randint(2,7)
 
