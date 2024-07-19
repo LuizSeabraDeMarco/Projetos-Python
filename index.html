@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Calculadora de Pegada de Carbono</title>
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        background-color: #f0f0f0;
+    }
+    .calculator {
+        background-color: #fff;
+        border-radius: 5px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        padding: 20px;
+        width: 300px;
+    }
+    .calculator label {
+        display: block;
+        margin-bottom: 10px;
+    }
+    .calculator input {
+        width: 100%;
+        padding: 8px;
+        box-sizing: border-box;
+        margin-bottom: 10px;
+    }
+    .calculator button {
+        width: 100%;
+        padding: 10px;
+        background-color: #007bff;
+        color: #fff;
+        border: none;
+        border-radius: 3px;
+        cursor: pointer;
+    }
+    .result {
+        margin-top: 20px;
+    }
+</style>
+</head>
+<body>
+    <div class="calculator">
+        <h2>Calculadora de Pegada de Carbono</h2>
+        <label for="km">Quantos quilômetros você dirige por dia?</label>
+        <input type="number" id="km">
+        <label for="mpg">Qual é a média de quilômetros por litro do seu carro?</label>
+        <input type="number" id="mpg">
+        <label for="voos">Quantos voos você faz por ano?</label>
+        <input type="number" id="voos">
+        <label for="eletricidade">Qual é o seu consumo de eletricidade em kWh por mês?</label>
+        <input type="number" id="eletricidade">
+        <label for="carne">Quantas vezes por semana você consome carne?</label>
+        <input type="number" id="carne">
+        <button onclick="calculateCarbonFootprint()">Calcular</button>
+        <div class="result" id="result"></div>
+        <div class="trees" id="trees"></div>
+    </div>
+    
+    <script>
+        function calculateCarbonFootprint() {
+            var km = document.getElementById('km').value;
+            var mpg = document.getElementById('mpg').value;
+            var voos = document.getElementById('voos').value;
+            var eletricidade = document.getElementById('eletricidade').value;
+            var carne = document.getElementById('carne').value;
+    
+            var carbonFootprintCarro = (km / mpg) * 2.31; // Assumindo que cada litro de gasolina queimado emite 2,31 kg de CO2
+            var carbonFootprintVoos = voos * 2.53 * 0.621371; // Assumindo que cada milha de voo emite 2,53 kg de CO2
+            var carbonFootprintEletricidade = eletricidade * 0.542; // Assumindo que cada kWh de eletricidade emite 0,542 kg de CO2
+            var carbonFootprintCarne = carne * 7.6 * 52; // Assumindo que cada consumo de carne emite 7,6 kg de CO2 e multiplicando por 52 semanas no ano
+    
+            var totalCarbonFootprint = carbonFootprintCarro + carbonFootprintVoos + carbonFootprintEletricidade + carbonFootprintCarne;
+    
+            var treesNeeded = totalCarbonFootprint / 22; // Cada árvore absorve cerca de 22 kg de CO2 por ano
+    
+            var totalCarbonFootprintTon = totalCarbonFootprint / 1000; // Convertendo de kg para toneladas
+    
+            document.getElementById('result').innerText = 'Pegada de Carbono ' + totalCarbonFootprintTon.toFixed(2) + ' toneladas de CO2 por ano.';
+            document.getElementById('trees').innerText = 'Isso equivale a aproximadamente ' + treesNeeded.toFixed(2) + ' árvores que seriam necessárias para absorver essa quantidade de CO2.';
+        }
+    </script>
+    
+
+</body>
+</html>

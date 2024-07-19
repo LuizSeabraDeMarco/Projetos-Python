@@ -3,7 +3,6 @@ from tkinter import messagebox
 import random
 from gtts import gTTS
 import pygame
-import pygame.mixer
 import threading
 
 # Dicionários para mapear algarismos em palavras nos diferentes idiomas
@@ -16,6 +15,15 @@ numeros_idiomas = {
         20: "zwanzig", 30: "dreißig", 40: "vierzig", 50: "fünfzig",
         60: "sechzig", 70: "siebzig", 80: "achtzig", 90: "neunzig",
         100: "hundert", 1000: "tausend", 1000000: "million"
+    },
+    'it': {
+        0: "zero", 1: "uno", 2: "due", 3: "tre", 4: "quattro", 5: "cinque",
+        6: "sei", 7: "sette", 8: "otto", 9: "nove", 10: "dieci",
+        11: "undici", 12: "dodici", 13: "tredici", 14: "quattordici", 15: "quindici",
+        16: "sedici", 17: "diciassette", 18: "diciotto", 19: "diciannove",
+        20: "venti", 30: "trenta", 40: "quaranta", 50: "cinquanta",
+        60: "sessanta", 70: "settanta", 80: "ottanta", 90: "novanta",
+        100: "cento", 1000: "mille", 1000000: "milione"
     },
     'fr': {
         0: "zéro", 1: "un", 2: "deux", 3: "trois", 4: "quatre", 5: "cinq",
@@ -46,11 +54,13 @@ numeros_idiomas = {
     }
 }
 
-# Variáveis globais para contagem de questões acertadas
+# Variáveis globais para controle do jogo
 questoes_acertadas = 0
 max_questoes_acertadas = 0
 idioma_atual = ""
 dificuldade_atual = ""
+modo_jogo = "Numeros"
+modo_escrita_ativo = False
 
 # Funções para converter números em palavras nos diferentes idiomas
 def num_para_palavras(numero, idioma):
@@ -69,20 +79,26 @@ def num_para_palavras(numero, idioma):
         resto = numero % 1000
         return num_para_palavras(milhar, idioma) + (" thousand " if resto != 0 else "") + num_para_palavras(resto, idioma)
 
+def num_para_extenso(numero, idioma):
+    if idioma == 'en':
+        try:
+            return num_para_palavras(int(numero), idioma)
+        except ValueError:
+            return "Invalid number"
+    else:
+        return "This feature is not available for this language."
+
 # Função para falar o número no idioma selecionado
 def falar_numero(numero_palavras, idioma):
     tts = gTTS(text=numero_palavras, lang=idioma)
     tts.save("numero.mp3")
     
-    pygame.mixer.init()  # Initialize pygame mixer
-    pygame.mixer.music.load("numero.mp3")  # Load the audio file
-    pygame.mixer.music.play()  # Play the loaded audio
-
-    while pygame.mixer.music.get_busy():  # Wait for the audio to finish playing
+    pygame.mixer.init()
+    pygame.mixer.music.load("numero.mp3")
+    pygame.mixer.music.play()
+    while pygame.mixer.music.get_busy():
         pygame.time.Clock().tick(10)
-
-    pygame.mixer.quit()  # Quit pygame mixer after playback
-
+    pygame.mixer.quit()
 
 # Função para gerar um novo número e exibi-lo
 def novo_numero():
@@ -91,139 +107,171 @@ def novo_numero():
     global max_questoes_acertadas
     global idioma_atual
     global dificuldade_atual
+    global modo_escrita_ativo
 
-    entrada.delete(0, tk.END)  # Limpa a caixa de entrada
-    resultado.set("")  # Limpa o resultado anterior
+    entrada.delete(0, tk.END)
+    resultado.set("")
 
-    # Verifica se houve mudança no idioma ou dificuldade
     if idioma.get() != idioma_atual or dificuldade.get() != dificuldade_atual:
         questoes_acertadas = 0
         max_questoes_acertadas = 0
-        label_questoes_acertadas.config(text="Seguidas: 0")
-        label_max_questoes_acertadas.config(text="Máximo de Questões Seguidas: 0")
+        label_questoes_acertadas.config(text=f"Seguidas: {questoes_acertadas} / ", justify="left")
+        label_max_questoes_acertadas.config(text=f"⭐Seguidas: {max_questoes_acertadas}", justify="right")
+
 
     idioma_atual = idioma.get()
     dificuldade_atual = dificuldade.get()
 
-    if dificuldade.get() == "Fácil":
+    if modo_jogo == "Numeros":
+        if dificuldade.get() == "Fácil":
+            numero_aleatorio = random.randint(1, 100)
+        elif dificuldade.get() == "Médio":
+            numero_aleatorio = random.randint(100, 1000)
+        elif dificuldade.get() == "Difícil":
+            numero_aleatorio = random.randint(1000, 1000000)
+
+        idioma_selecionado = idioma.get()
+        texto_numero.set(num_para_palavras(numero_aleatorio, idioma_selecionado))
+        if falar_var.get() == 1:
+            threading.Thread(target=falar_numero, args=(num_para_palavras(numero_aleatorio, idioma_selecionado), idioma_selecionado)).start()
+
+    elif modo_jogo == "Escrita":
         numero_aleatorio = random.randint(1, 100)
-    elif dificuldade.get() == "Médio":
-        numero_aleatorio = random.randint(100, 1000)
-    elif dificuldade.get() == "Difícil":
-        numero_aleatorio = random.randint(1000, 1000000)
+        texto_numero.set(numero_aleatorio)
+        modo_escrita_ativo = True
 
-    idioma_selecionado = idioma.get()
-    texto_numero.set(num_para_palavras(numero_aleatorio, idioma_selecionado))
-
-    # Usar threading para falar o número em paralelo
-    thread_audio = threading.Thread(target=falar_numero, args=(num_para_palavras(numero_aleatorio, idioma_selecionado), idioma_selecionado))
-    thread_audio.start()
-
-# Função para verificar a resposta do jogador
+# Função para verificar a resposta do usuário
 def verificar_resposta(event=None):
     global questoes_acertadas
     global max_questoes_acertadas
+    global modo_escrita_ativo
 
-    resposta = entrada.get()
-    try:
-        resposta_numero = int(resposta)
-        if resposta_numero == numero_aleatorio:
+    resposta = entrada.get().strip().lower()
+    if modo_jogo == "Numeros":
+        try:
+            resposta_numero = int(resposta)
+            if resposta_numero == numero_aleatorio:
+                questoes_acertadas += 1
+                if questoes_acertadas > max_questoes_acertadas:
+                    max_questoes_acertadas = questoes_acertadas
+                resultado.set("Correto!")
+                root.after(1000, lambda: resultado.set(""))
+                root.after(1000, novo_numero)
+
+                if dificuldade.get() == "Difícil" and questoes_acertadas == 15:
+                    messagebox.showinfo("🎉Parabéns!", "🎉Você memorizou todos os principais números!🎉")
+                    questoes_acertadas = 0
+                    label_questoes_acertadas.config(text=f"Seguidas: {questoes_acertadas} / ", justify="left")
+                    max_questoes_acertadas = 0
+                    label_max_questoes_acertadas.config(text=f"⭐Seguidas: {max_questoes_acertadas}", justify="right")
+
+            else:
+                questoes_acertadas = 0
+                resultado.set(f"Errado! O número correto era: {numero_aleatorio}")
+                root.after(2000, lambda: resultado.set(""))
+                root.after(2000, novo_numero)
+        except ValueError:
+            resultado.set("Por favor, digite um número válido.")
+
+    elif modo_jogo == "Escrita":
+        resposta_esperada = num_para_palavras(numero_aleatorio, idioma.get()).lower()
+        if resposta == resposta_esperada:
             questoes_acertadas += 1
             if questoes_acertadas > max_questoes_acertadas:
                 max_questoes_acertadas = questoes_acertadas
             resultado.set("Correto!")
-            root.after(1000, lambda: resultado.set(""))  # Limpa o resultado após 1 segundo
-            root.after(1000, novo_numero)  # Espera 1 segundo e sorteia um novo número
-            
-            # Verifica se alcançou 15 acertos seguidos no nível Difícil
-            if dificuldade.get() == "Difícil" and questoes_acertadas == 15:
-                messagebox.showinfo("🎉Parabéns!", "🎉Você memorizou todos os principais números!🎉")
-                questoes_acertadas = 0
-                max_questoes_acertadas = 0
-                label_questoes_acertadas.config(text="Questões Seguidas Acertadas: 0")
-                label_max_questoes_acertadas.config(text="Máximo de Questões Seguidas Acertadas: 0")
-        
+            root.after(1000, lambda: resultado.set(""))
+            root.after(1000, novo_numero)
         else:
-            if dificuldade.get() == "Difícil":
-                questoes_acertadas = 0
-                resultado.set(f"Errado! O número correto era: {numero_aleatorio}")
-                root.after(6000, lambda: resultado.set(""))  # Limpa o resultado após 2 segundos
-                root.after(6000, novo_numero)  # Espera 2 segundos e sorteia um novo número
-            else:
-                questoes_acertadas = 0
-                resultado.set(f"Errado! O número correto era: {numero_aleatorio}")
-                root.after(2000, lambda: resultado.set(""))  # Limpa o resultado após 2 segundos
-                root.after(2000, novo_numero)  # Espera 2 segundos e sorteia um novo número
-    except ValueError:
-        resultado.set("Por favor, digite um número válido.")
+            resultado.set(f"Incorreto! A resposta correta era: {resposta_esperada}")
 
-# Criando a interface gráfica
+    label_questoes_acertadas.config(text=f"Seguidas: {questoes_acertadas} / ", justify="left")
+    label_max_questoes_acertadas.config(text=f"⭐Seguidas: {max_questoes_acertadas}", justify="right")
+
+# Função para fechar a janela
+def fechar_janela():
+    root.destroy()
+
+# Configuração da interface gráfica
 root = tk.Tk()
-root.title("Jogo de Memória de Números por Extensão")
+root.title("Adivinhação de Números e Palavras")
+root.attributes('-fullscreen', True)
 
-# Frame para seleção de idioma e dificuldade
-frame_selecao = tk.Frame(root)
-frame_selecao.pack(pady=10)
+# Adiciona um botão de fechar
+btn_fechar = tk.Button(root, text="Fechar", command=fechar_janela)
+btn_fechar.pack(side=tk.TOP, padx=10, pady=10)
 
-# OptionMenu para selecionar o idioma
-tk.Label(frame_selecao, text="Selecione o idioma:").pack()
-idioma = tk.StringVar()
-idioma.set("de")  # Valor padrão
-tk.OptionMenu(frame_selecao, idioma, "de", "fr", "en", "es").pack()
-
-# OptionMenu para selecionar a dificuldade
-tk.Label(frame_selecao, text="Selecione a dificuldade:").pack()
-dificuldade = tk.StringVar()
-dificuldade.set("Fácil")  # Valor padrão
-tk.OptionMenu(frame_selecao, dificuldade, "Fácil", "Médio", "Difícil").pack()
-
-# Frames para exibir o número, entrada de texto, resultado e contagem
-frame_numero = tk.Frame(root)
-frame_numero.pack(pady=10)
 texto_numero = tk.StringVar()
-label_numero = tk.Label(frame_numero, textvariable=texto_numero, font=("Helvetica", 24))
+resultado = tk.StringVar()
+idioma = tk.StringVar()
+dificuldade = tk.StringVar()
+falar_var = tk.IntVar()
+
+idioma.set("en")
+dificuldade.set("Fácil")
+
+frame_superior = tk.Frame(root)
+frame_superior.pack(pady=10)
+
+frame_central = tk.Frame(root)
+frame_central.pack(pady=10)
+
+frame_inferior = tk.Frame(root)
+frame_inferior.pack(pady=10)
+
+label_titulo = tk.Label(frame_superior, text="Adivinhação de Números e Palavras", font=("Arial", 18))
+label_titulo.pack()
+
+label_numero = tk.Label(frame_central, textvariable=texto_numero, font=("Arial", 24))
 label_numero.pack()
 
-frame_entrada = tk.Frame(root)
-frame_entrada.pack(pady=10)
-entrada = tk.Entry(frame_entrada, font=("Helvetica", 18))
-entrada.pack()
-entrada.bind("<Return>", verificar_resposta)
-
-frame_resultado = tk.Frame(root)
-frame_resultado.pack(pady=10)
-resultado = tk.StringVar()
-label_resultado = tk.Label(frame_resultado, textvariable=resultado, font=("Helvetica", 18))
+label_resultado = tk.Label(frame_central, textvariable=resultado, font=("Arial", 18))
 label_resultado.pack()
 
-frame_contagem = tk.Frame(root)
-frame_contagem.pack(pady=10)
-label_questoes_acertadas = tk.Label(frame_contagem, text="Questões Seguidas Acertadas: 0", font=("Helvetica", 14))
-label_questoes_acertadas.pack()
-label_max_questoes_acertadas = tk.Label(frame_contagem, text="Máximo de Questões Seguidas Acertadas: 0", font=("Helvetica", 14))
-label_max_questoes_acertadas.pack()
+label_questoes_acertadas = tk.Label(frame_inferior, text=f"Seguidas: {questoes_acertadas} / ", justify="left")
+label_questoes_acertadas.pack(side=tk.LEFT)
 
-# Botões
-frame_botoes = tk.Frame(root)
-frame_botoes.pack(pady=10)
-botao_novo = tk.Button(frame_botoes, text="Novo Número", command=novo_numero, font=("Helvetica", 14))
-botao_novo.pack(side=tk.LEFT, padx=10)
-botao_verificar = tk.Button(frame_botoes, text="Verificar", command=verificar_resposta, font=("Helvetica", 14))
-botao_verificar.pack(side=tk.RIGHT, padx=10)
+label_max_questoes_acertadas = tk.Label(frame_inferior, text=f"⭐Seguidas: {max_questoes_acertadas}", justify="right")
+label_max_questoes_acertadas.pack(side=tk.RIGHT)
 
-# Função para atualizar a contagem de questões acertadas
-def atualizar_contagem():
-    global questoes_acertadas
-    global max_questoes_acertadas
+entrada = tk.Entry(frame_central, font=("Arial", 18), width=10)
+entrada.pack(pady=10)
+entrada.bind("<Return>", verificar_resposta)
 
-    label_questoes_acertadas.config(text=f"Seguidas: {questoes_acertadas}")
-    label_max_questoes_acertadas.config(text=f"⭐Seguidas: {max_questoes_acertadas}")
-    root.after(100, atualizar_contagem)
+label_idioma = tk.Label(frame_superior, text="Escolha o Idioma:", font=("Arial", 14))
+label_idioma.pack()
 
-atualizar_contagem()
+radiobtn_en = tk.Radiobutton(frame_superior, text="Inglês", variable=idioma, value="en")
+radiobtn_en.pack(anchor=tk.W)
+radiobtn_es = tk.Radiobutton(frame_superior, text="Espanhol", variable=idioma, value="es")
+radiobtn_es.pack(anchor=tk.W)
+radiobtn_fr = tk.Radiobutton(frame_superior, text="Francês", variable=idioma, value="fr")
+radiobtn_fr.pack(anchor=tk.W)
+radiobtn_de = tk.Radiobutton(frame_superior, text="Alemão", variable=idioma, value="de")
+radiobtn_de.pack(anchor=tk.W)
+radiobtn_it = tk.Radiobutton(frame_superior, text="Italiano", variable=idioma, value="it")
+radiobtn_it.pack(anchor=tk.W)
 
-# Iniciar com um número aleatório
+label_dificuldade = tk.Label(frame_superior, text="Escolha a Dificuldade:", font=("Arial", 14))
+label_dificuldade.pack()
+
+radiobtn_facil = tk.Radiobutton(frame_superior, text="Fácil", variable=dificuldade, value="Fácil")
+radiobtn_facil.pack(anchor=tk.W)
+radiobtn_medio = tk.Radiobutton(frame_superior, text="Médio", variable=dificuldade, value="Médio")
+radiobtn_medio.pack(anchor=tk.W)
+radiobtn_dificil = tk.Radiobutton(frame_superior, text="Difícil", variable=dificuldade, value="Difícil")
+radiobtn_dificil.pack(anchor=tk.W)
+
+btn_novo_numero = tk.Button(frame_central, text="Novo Número", font=("Arial", 14), command=novo_numero)
+btn_novo_numero.pack(pady=10)
+
+btn_verificar_resposta = tk.Button(frame_central, text="Verificar Resposta", font=("Arial", 14), command=verificar_resposta)
+btn_verificar_resposta.pack(pady=10)
+
+chk_falar = tk.Checkbutton(frame_central, text="Falar número", variable=falar_var)
+chk_falar.pack(pady=10)
+
+# Inicializar a tela em modo Números
 novo_numero()
 
-# Executar a interface gráfica
 root.mainloop()
